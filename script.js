@@ -55,7 +55,10 @@ document.querySelectorAll('.section').forEach(section => {
   observer.observe(section);
 });
 
-// Contact form handler - 직접 이메일 전송
+// Google Apps Script URL - 배포 후 여기에 URL 입력
+const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL'; // 여기에 URL 붙여넣기
+
+// Contact form handler - Google Sheets + 이메일 전송
 document.addEventListener('DOMContentLoaded', function() {
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -81,35 +84,59 @@ document.addEventListener('DOMContentLoaded', function() {
       };
 
       try {
-        // Vercel 또는 Netlify Function으로 전송
-        // Vercel 배포 시: /api/send-email
-        // Netlify 배포 시: /.netlify/functions/send-email
-        const endpoint = window.location.hostname.includes('vercel')
-          ? '/api/send-email'
-          : window.location.hostname.includes('netlify')
-          ? '/.netlify/functions/send-email'
-          : '/api/send-email'; // 기본값
+        // Google Apps Script로 전송 (우선)
+        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL') {
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // CORS 우회
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
 
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData)
-        });
-
-        if (response.ok) {
-          alert('✅ 문의가 성공적으로 전송되었습니다!\n\n빠른 시일 내에 연락드리겠습니다.');
+          // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+          alert('✅ 문의가 성공적으로 접수되었습니다!\n\n빠른 시일 내에 연락드리겠습니다.');
           this.reset();
-        } else {
-          throw new Error('전송 실패');
+
         }
+        // Vercel/Netlify 폴백
+        else if (window.location.hostname.includes('vercel') || window.location.hostname.includes('netlify')) {
+          const endpoint = window.location.hostname.includes('vercel')
+            ? '/api/send-email'
+            : '/.netlify/functions/send-email';
 
-      } catch (error) {
-        console.error('전송 오류:', error);
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
 
-        // 오류 발생 시 이메일 클라이언트로 폴백
-        if (confirm('전송 중 오류가 발생했습니다.\n\n이메일 클라이언트로 전송하시겠습니까?')) {
+          if (response.ok) {
+            alert('✅ 문의가 성공적으로 전송되었습니다!\n\n빠른 시일 내에 연락드리겠습니다.');
+            this.reset();
+          } else {
+            throw new Error('전송 실패');
+          }
+
+        }
+        // Google Apps Script 설정 안내
+        else {
+          if (confirm('⚠️ Google Apps Script 설정이 필요합니다.\n\n설정 안내를 확인하시겠습니까?')) {
+            alert(
+              '📋 설정 방법:\n\n' +
+              '1. Google Sheets 열기 (README 참조)\n' +
+              '2. 확장 프로그램 → Apps Script\n' +
+              '3. google-apps-script-final.js 코드 붙여넣기\n' +
+              '4. 배포 → 웹 앱으로 배포\n' +
+              '5. URL을 script.js 59번 줄에 입력\n\n' +
+              '또는 이메일로 직접 전송하려면 "확인"을 누르세요.'
+            );
+          }
+
+          // 이메일 클라이언트로 폴백
           const emailSubject = `[전기요금 절감 컨설팅] ${formData.company} - ${formData.name}님 문의`;
           const emailBody = `
 회사명: ${formData.company}
@@ -127,6 +154,11 @@ ${formData.message}
           const mailtoLink = `mailto:lucas@warmguys.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
           window.location.href = mailtoLink;
         }
+
+      } catch (error) {
+        console.error('전송 오류:', error);
+        alert('전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+
       } finally {
         // 버튼 원래 상태로 복구
         submitBtn.textContent = originalText;
