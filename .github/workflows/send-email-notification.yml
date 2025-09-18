@@ -1,0 +1,104 @@
+name: Process Form Submission and Notify
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  process-and-notify:
+    runs-on: ubuntu-latest
+    # form-submission 라벨이 있는 이슈만 처리
+    if: contains(github.event.issue.labels.*.name, 'form-submission') || contains(github.event.issue.labels.*.name, 'consultation')
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Extract Form Data
+      id: extract
+      run: |
+        # Issue body에서 데이터 추출
+        echo "COMPANY=$(echo '${{ github.event.issue.body }}' | grep -oP '(?<=\*\*회사명:\*\* ).*')" >> $GITHUB_OUTPUT
+        echo "NAME=$(echo '${{ github.event.issue.body }}' | grep -oP '(?<=\*\*담당자명:\*\* ).*')" >> $GITHUB_OUTPUT
+        echo "PHONE=$(echo '${{ github.event.issue.body }}' | grep -oP '(?<=\*\*연락처:\*\* ).*')" >> $GITHUB_OUTPUT
+        echo "EMAIL=$(echo '${{ github.event.issue.body }}' | grep -oP '(?<=\*\*이메일:\*\* ).*')" >> $GITHUB_OUTPUT
+
+    - name: Save to submissions.csv
+      run: |
+        # CSV 파일이 없으면 생성
+        if [ ! -f submissions.csv ]; then
+          echo "날짜,이슈번호,회사명,담당자명,연락처,이메일,링크" > submissions.csv
+        fi
+
+        # 새로운 제출 추가
+        echo "$(date '+%Y-%m-%d %H:%M:%S'),#${{ github.event.issue.number }},${{ steps.extract.outputs.COMPANY }},${{ steps.extract.outputs.NAME }},${{ steps.extract.outputs.PHONE }},${{ steps.extract.outputs.EMAIL }},${{ github.event.issue.html_url }}" >> submissions.csv
+
+    - name: Commit CSV
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add submissions.csv
+        git diff --quiet && git diff --staged --quiet || git commit -m "문의 추가: ${{ steps.extract.outputs.COMPANY }} - ${{ steps.extract.outputs.NAME }}"
+        git push
+
+    - name: Send Email Alert
+      # Gmail SMTP를 사용한 이메일 전송 (선택사항)
+      # GitHub Secrets에 EMAIL_USERNAME과 EMAIL_PASSWORD 설정 필요
+      if: ${{ secrets.EMAIL_USERNAME != '' }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        secure: true
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: ${{ github.event.issue.title }}
+        to: lucas@warmguys.com
+        from: ${{ secrets.EMAIL_USERNAME }}
+        body: |
+          새로운 전기요금 절감 컨설팅 문의가 접수되었습니다.
+
+          ${{ github.event.issue.body }}
+
+          ---
+          📎 GitHub Issue: ${{ github.event.issue.html_url }}
+          🕐 접수 시간: ${{ github.event.issue.created_at }}
+
+    - name: Add Auto Reply
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## ✅ 문의가 접수되었습니다
+
+안녕하세요, ${{ steps.extract.outputs.NAME }}님.
+
+전기요금 절감 컨설팅 문의를 접수했습니다.
+빠른 시일 내에 담당자가 연락드릴 예정입니다.
+
+**접수 정보:**
+- 접수번호: #${{ github.event.issue.number }}
+- 회사명: ${{ steps.extract.outputs.COMPANY }}
+- 연락처: ${{ steps.extract.outputs.PHONE }}
+
+추가 문의사항이 있으시면 이 이슈에 댓글로 남겨주세요.
+
+감사합니다.`
+          })
+
+    - name: Label and Close Issue
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          await github.rest.issues.update({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'closed',
+            labels: ['form-submission', 'processed']
+          })
