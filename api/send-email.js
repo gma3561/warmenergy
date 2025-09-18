@@ -20,18 +20,15 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
 
-    // SendGrid API (무료 - 일 100건)
-    // 또는 Resend API (무료 - 일 100건)
-    // 환경변수로 API 키 설정 필요
+    // 이메일 전송 옵션 1: SendGrid API 키가 있는 경우
+    if (process.env.SENDGRID_API_KEY) {
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    // 옵션 1: SendGrid 사용 시
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-    const msg = {
-      to: 'lucas@warmguys.com',
-      from: 'noreply@warmenergy.com', // SendGrid에 인증된 이메일
-      subject: `[전기요금 절감 컨설팅] ${data.company} - ${data.name}님 문의`,
+      const msg = {
+        to: 'lucas@warmguys.com',
+        from: process.env.SENDER_EMAIL || 'noreply@warmenergy.com', // SendGrid에 인증된 이메일
+        subject: `[전기요금 절감 컨설팅] ${data.company} - ${data.name}님 문의`,
       text: `
 회사명: ${data.company}
 담당자명: ${data.name}
@@ -64,18 +61,42 @@ ${data.message || '없음'}
       `
     };
 
-    await sgMail.send(msg);
+      await sgMail.send(msg);
 
-    return res.status(200).json({
-      status: 'success',
-      message: '문의가 성공적으로 전송되었습니다.'
-    });
+      return res.status(200).json({
+        status: 'success',
+        message: '문의가 성공적으로 전송되었습니다.'
+      });
+    }
+
+    // 이메일 전송 옵션 2: API 키가 없는 경우 데이터만 저장 (개발 용도)
+    else {
+      // 콘솔에 로그 출력 (Vercel Functions 로그에서 확인 가능)
+      console.log('✅ 새로운 문의 접수:', {
+        회사명: data.company,
+        담당자: data.name,
+        연락처: data.phone,
+        이메일: data.email,
+        주소: data.location,
+        월평균전기요금: data.electricBill,
+        문의사항: data.message,
+        접수시간: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+      });
+
+      // 성공 응답 반환 (SendGrid 없이도 성공 처리)
+      return res.status(200).json({
+        status: 'success',
+        message: '문의가 접수되었습니다. (이메일 설정 필요)',
+        note: 'SendGrid API 키를 설정하면 자동으로 이메일이 전송됩니다.'
+      });
+    }
 
   } catch (error) {
     console.error('Error:', error);
     return res.status(500).json({
       status: 'error',
-      message: '전송 중 오류가 발생했습니다.'
+      message: '전송 중 오류가 발생했습니다.',
+      error: error.message
     });
   }
 }
