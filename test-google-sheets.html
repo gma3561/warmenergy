@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets 테스트</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #0066ff; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0052cc; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>📋 Google Sheets 연동 테스트</h1>
+    <p>이 페이지에서 직접 테스트해보세요!</p>
+
+    <form id="testForm">
+        <div class="form-group">
+            <label>회사명 *</label>
+            <input type="text" name="company" required value="테스트 회사">
+        </div>
+        <div class="form-group">
+            <label>담당자명 *</label>
+            <input type="text" name="name" required value="김철수">
+        </div>
+        <div class="form-group">
+            <label>직급</label>
+            <input type="text" name="position" value="과장">
+        </div>
+        <div class="form-group">
+            <label>연락처 *</label>
+            <input type="text" name="phone" required value="010-1234-5678">
+        </div>
+        <div class="form-group">
+            <label>이메일</label>
+            <input type="email" name="email" value="test@example.com">
+        </div>
+        <div class="form-group">
+            <label>사업장 주소 *</label>
+            <input type="text" name="location" required value="서울시 강남구">
+        </div>
+        <div class="form-group">
+            <label>월 평균 전기요금</label>
+            <input type="text" name="electricBill" value="300만원">
+        </div>
+        <div class="form-group">
+            <label>문의사항</label>
+            <textarea name="message" rows="3">테스트 문의입니다.</textarea>
+        </div>
+        <button type="submit">테스트 전송</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlrvK0P2xT9PG_lJfPTvXx6dVrs2-cMoJs6BfyFIqt7r3VkqwivSQeHkTllzBamXAh/exec';
+
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const resultDiv = document.getElementById('result');
+            const submitBtn = e.target.querySelector('button');
+            const originalText = submitBtn.textContent;
+
+            submitBtn.textContent = '전송 중...';
+            submitBtn.disabled = true;
+
+            const formData = {
+                company: this.company.value,
+                name: this.name.value,
+                position: this.position.value,
+                phone: this.phone.value,
+                email: this.email.value,
+                location: this.location.value,
+                electricBill: this.electricBill.value,
+                message: this.message.value
+            };
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+                resultDiv.className = 'success';
+                resultDiv.innerHTML = `
+                    <h3>✅ 테스트 성공!</h3>
+                    <p>데이터가 전송되었습니다. 확인해보세요:</p>
+                    <ul>
+                        <li>📊 <a href="https://docs.google.com/spreadsheets/d/1amaUEYJ2oyS1kn4giI68J2PtPt1o5IPNXBB0NDSmxlc/edit" target="_blank">Google Sheets 열기</a></li>
+                        <li>📧 clover9@warmguys.com 이메일 확인</li>
+                    </ul>
+                    <p>시간: ${new Date().toLocaleString('ko-KR')}</p>
+                `;
+                resultDiv.style.display = 'block';
+
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <h3>❌ 오류 발생</h3>
+                    <p>${error.message}</p>
+                `;
+                resultDiv.style.display = 'block';
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

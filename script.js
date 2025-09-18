@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
 ${formData.message}
 `.trim();
 
-          const mailtoLink = `mailto:lucas@warmguys.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+          const mailtoLink = `mailto:clover9@warmguys.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
           window.location.href = mailtoLink;
         }
 

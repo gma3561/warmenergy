@@ -70,9 +70,9 @@ ${data.message || '문의사항 없음'}
 
     // 이메일 전송
     GmailApp.sendEmail(
-      'lucas@warmguys.com',  // 받는 사람
-      emailSubject,          // 제목
-      emailBody,             // 본문
+      'clover9@warmguys.com',  // 받는 사람
+      emailSubject,           // 제목
+      emailBody,               // 본문
       {
         name: '전기요금 절감 컨설팅 시스템',
         replyTo: data.email || 'noreply@warmenergy.com'

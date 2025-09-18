@@ -141,7 +141,7 @@ ${data.message || '문의사항 없음'}
     `;
 
     // 이메일 전송 (받는 사람)
-    const recipient = 'lucas@warmguys.com';
+    const recipient = 'clover9@warmguys.com';
 
     // Gmail로 이메일 전송
     GmailApp.sendEmail(
