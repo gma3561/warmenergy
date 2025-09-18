@@ -1,110 +1,100 @@
 # 전기요금 절감 컨설팅 웹사이트
 
-## 🚀 100% 무료 폼 제출 시스템 (GitHub Actions 활용)
+## 🚀 완전 무료 이메일 전송 시스템 (Google Apps Script)
 
-이 시스템은 **완전 무료**로 폼 제출을 GitHub Issues와 Actions로 처리합니다.
+**로그인 불필요! 버튼 클릭만으로 바로 이메일 전송!**
 
-### 작동 방식
+### 특징
+- ✅ **100% 무료** (Google 계정만 있으면 OK)
+- ✅ **사용자 로그인 불필요**
+- ✅ 버튼 클릭 즉시 lucas@warmguys.com으로 전송
+- ✅ 서버 구축 불필요
+- ✅ 월 20,000건까지 무료
 
-1. 사용자가 폼 작성 후 제출
-2. GitHub Issue 페이지로 이동 (자동으로 내용 채워짐)
-3. 사용자가 "Submit new issue" 클릭
-4. GitHub Actions가 자동으로:
-   - CSV 파일에 저장 (`submissions.csv`)
-   - 자동 답변 댓글 작성
-   - 이슈 자동 종료
-   - (선택) 이메일 알림 전송
+## 설정 방법 (5분 소요)
 
-### 장점
-- ✅ **100% 무료** (GitHub 무료 계정 사용)
-- ✅ 서버 필요 없음
-- ✅ 데이터베이스 필요 없음
-- ✅ 모든 문의 내역 GitHub Issues에 보관
-- ✅ CSV 파일로 자동 백업
+### 1단계: Google Apps Script 설정
 
-## 설정 방법
+1. **Google Apps Script 열기**
+   - https://script.google.com 접속
+   - Google 계정으로 로그인
 
-### 1. GitHub Repository 설정
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/lucasha/warmenergy.git
-git push -u origin main
-```
+2. **새 프로젝트 생성**
+   - "새 프로젝트" 클릭
+   - 프로젝트명: "전기요금 컨설팅 이메일"
 
-### 2. GitHub Pages 활성화
-1. Repository → Settings → Pages
-2. Source: `Deploy from a branch`
-3. Branch: `main` / `root`
-4. Save
+3. **코드 복사/붙여넣기**
+   - `google-apps-script-code.js` 파일의 모든 코드 복사
+   - 기존 코드 삭제 후 붙여넣기
+   - Ctrl+S (또는 Cmd+S) 저장
 
-### 3. Labels 생성 (중요!)
-Repository → Issues → Labels에서 다음 라벨 생성:
-- `form-submission` (필수)
-- `consultation` (필수)
-- `processed`
+4. **웹 앱으로 배포**
+   - 상단 메뉴: 배포 → 새 배포
+   - 유형 선택: "웹 앱"
+   - 설정:
+     - 설명: "이메일 전송 API"
+     - 실행: "나"
+     - 액세스 권한: **"모든 사용자"** (중요!)
+   - "배포" 클릭
+   - 권한 승인 (처음 한 번만)
 
-### 4. (선택) 이메일 알림 설정
-이메일 알림을 받고 싶다면:
+5. **URL 복사**
+   - 배포 완료 후 나타나는 URL 복사
+   - 예: `https://script.google.com/macros/s/AKfycbxxxxxx/exec`
 
-1. Gmail 앱 비밀번호 생성:
-   - Google 계정 → 보안 → 2단계 인증 활성화
-   - 앱 비밀번호 생성
+### 2단계: 웹사이트 설정
 
-2. GitHub Secrets 설정:
-   - Repository → Settings → Secrets and variables → Actions
-   - `EMAIL_USERNAME`: Gmail 주소
-   - `EMAIL_PASSWORD`: 앱 비밀번호
+1. **script.js 파일 수정**
+   ```javascript
+   // 60번 줄의 YOUR_GOOGLE_SCRIPT_URL을 복사한 URL로 교체
+   const GOOGLE_SCRIPT_URL = '여기에_복사한_URL_붙여넣기';
+   ```
+
+2. **GitHub에 Push**
+   ```bash
+   git add .
+   git commit -m "Google Apps Script URL 설정"
+   git push origin main
+   ```
 
 ## 사용 방법
 
 1. 웹사이트에서 폼 작성
 2. "무료 컨설팅 신청하기" 클릭
-3. GitHub 로그인 (무료 계정 가능)
-4. "Submit new issue" 클릭
-5. 완료! 자동으로 처리됨
+3. **바로 전송 완료!** (로그인 불필요)
 
-## 문의 데이터 확인
+## 이메일 수신 확인
 
-### 방법 1: CSV 파일
-- Repository의 `submissions.csv` 파일에 모든 문의 저장
-- Excel에서 바로 열기 가능
-
-### 방법 2: GitHub Issues
-- 모든 문의가 Issues 탭에 보관
-- 검색, 필터링 가능
-- 댓글로 고객과 소통 가능
+- **수신자**: lucas@warmguys.com
+- **형식**: HTML 이메일 (깔끔한 디자인)
+- **내용**: 모든 폼 필드 + 제출 시간
 
 ## 파일 구조
 ```
 warmenergy/
-├── index.html          # 메인 페이지
-├── styles.css          # 스타일
-├── script.js           # 폼 제출 로직
-├── .github/
-│   └── workflows/
-│       ├── send-email-notification.yml  # 자동 처리 워크플로우
-│       └── form-submission.yml         # CSV 저장 워크플로우
-└── submissions.csv     # 문의 내역 (자동 생성)
+├── index.html                    # 메인 페이지
+├── styles.css                    # 스타일
+├── script.js                     # 폼 제출 로직 (수정 필요)
+└── google-apps-script-code.js    # Google Apps Script 코드 (복사용)
 ```
 
 ## 문제 해결
 
-### Issue 생성이 안 될 때
-- GitHub 로그인 확인
-- Repository가 public인지 확인
+### 이메일이 전송되지 않을 때
+1. Google Apps Script URL이 올바르게 설정되었는지 확인
+2. Google Apps Script 배포 시 "모든 사용자" 권한 선택했는지 확인
+3. 브라우저 콘솔(F12)에서 에러 메시지 확인
 
-### GitHub Actions가 실행되지 않을 때
-- Labels (`form-submission`, `consultation`) 생성 확인
-- Actions 탭에서 워크플로우 활성화 확인
-
-### 이메일이 오지 않을 때
-- GitHub Secrets 설정 확인
-- Gmail 앱 비밀번호 확인
+### "설정이 필요합니다" 메시지가 나올 때
+- script.js 파일의 60번 줄 GOOGLE_SCRIPT_URL 확인
+- `YOUR_GOOGLE_SCRIPT_URL`을 실제 URL로 교체했는지 확인
 
 ## 비용
-- GitHub: **무료** (Public repository)
-- GitHub Actions: **무료** (월 2,000분 제공)
+- Google Apps Script: **무료** (월 20,000건)
 - GitHub Pages: **무료**
 - 총 비용: **₩0**
+
+## 보안
+- 이메일 주소가 코드에 하드코딩되어 안전
+- 스팸봇이 수집할 수 없는 구조
+- Google 인프라 사용으로 안정적
