@@ -56,7 +56,7 @@ document.querySelectorAll('.section').forEach(section => {
 });
 
 // Google Apps Script URL - 배포 후 여기에 URL 입력
-const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL'; // 여기에 URL 붙여넣기
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlrvK0P2xT9PG_lJfPTvXx6dVrs2-cMoJs6BfyFIqt7r3VkqwivSQeHkTllzBamXAh/exec';
 
 // Contact form handler - Google Sheets + 이메일 전송
 document.addEventListener('DOMContentLoaded', function() {
