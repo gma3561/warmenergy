@@ -55,11 +55,7 @@ document.querySelectorAll('.section').forEach(section => {
   observer.observe(section);
 });
 
-// Google Apps Script URL (배포 후 받은 URL을 여기에 입력)
-// 예시: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxx/exec
-const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL'; // 여기에 배포 URL 입력
-
-// Contact form handler - 직접 이메일 전송 (로그인 불필요)
+// Contact form handler - 직접 이메일 전송
 document.addEventListener('DOMContentLoaded', function() {
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -85,54 +81,28 @@ document.addEventListener('DOMContentLoaded', function() {
       };
 
       try {
-        // Google Apps Script로 직접 전송
-        if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL') {
-          const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // CORS 우회
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-          });
+        // Vercel 또는 Netlify Function으로 전송
+        // Vercel 배포 시: /api/send-email
+        // Netlify 배포 시: /.netlify/functions/send-email
+        const endpoint = window.location.hostname.includes('vercel')
+          ? '/api/send-email'
+          : window.location.hostname.includes('netlify')
+          ? '/.netlify/functions/send-email'
+          : '/api/send-email'; // 기본값
 
-          // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
           alert('✅ 문의가 성공적으로 전송되었습니다!\n\n빠른 시일 내에 연락드리겠습니다.');
-
-          // 폼 초기화
           this.reset();
-
         } else {
-          // Google Apps Script URL이 설정되지 않은 경우 안내
-          if (confirm('⚠️ 이메일 전송 설정이 필요합니다.\n\n설정 방법을 확인하시겠습니까?')) {
-            alert(
-              '📋 설정 방법:\n\n' +
-              '1. google-apps-script-code.js 파일의 코드를 복사\n' +
-              '2. https://script.google.com 접속\n' +
-              '3. 새 프로젝트 생성 → 코드 붙여넣기\n' +
-              '4. 배포 → 웹 앱으로 배포\n' +
-              '5. 받은 URL을 script.js의 GOOGLE_SCRIPT_URL에 입력\n\n' +
-              '또는 이메일로 직접 전송하려면 "확인"을 누르세요.'
-            );
-
-            // 이메일 클라이언트로 폴백
-            const emailSubject = `[전기요금 절감 컨설팅] ${formData.company} - ${formData.name}님 문의`;
-            const emailBody = `
-회사명: ${formData.company}
-담당자명: ${formData.name}
-직급: ${formData.position}
-연락처: ${formData.phone}
-이메일: ${formData.email}
-사업장 주소: ${formData.location}
-월 평균 전기요금: ${formData.electricBill}
-
-문의사항:
-${formData.message}
-`.trim();
-
-            const mailtoLink = `mailto:lucas@warmguys.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-            window.location.href = mailtoLink;
-          }
+          throw new Error('전송 실패');
         }
 
       } catch (error) {

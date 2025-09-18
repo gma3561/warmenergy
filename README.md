@@ -1,61 +1,57 @@
 # 전기요금 절감 컨설팅 웹사이트
 
-## 🚀 완전 무료 이메일 전송 시스템 (Google Apps Script)
+## 🚀 완전 무료 이메일 전송 시스템 (Vercel 또는 Netlify)
 
 **로그인 불필요! 버튼 클릭만으로 바로 이메일 전송!**
 
-### 특징
-- ✅ **100% 무료** (Google 계정만 있으면 OK)
-- ✅ **사용자 로그인 불필요**
+### 두 가지 무료 옵션
+
+#### 옵션 1: Vercel (추천)
+- ✅ **100% 무료**
 - ✅ 버튼 클릭 즉시 lucas@warmguys.com으로 전송
-- ✅ 서버 구축 불필요
-- ✅ 월 20,000건까지 무료
+- ✅ 서버리스 함수 자동 배포
+- ✅ SendGrid 무료 플랜 (일 100건)
 
-## 설정 방법 (5분 소요)
+#### 옵션 2: Netlify
+- ✅ **100% 무료**
+- ✅ Netlify Forms 자동 이메일
+- ✅ 월 100 폼 제출 무료
 
-### 1단계: Google Apps Script 설정
+## 설정 방법
 
-1. **Google Apps Script 열기**
-   - https://script.google.com 접속
-   - Google 계정으로 로그인
+### Vercel 배포 (추천 - 5분)
 
-2. **새 프로젝트 생성**
-   - "새 프로젝트" 클릭
-   - 프로젝트명: "전기요금 컨설팅 이메일"
+1. **Vercel 가입** (무료)
+   - https://vercel.com 접속
+   - GitHub 계정으로 로그인
 
-3. **코드 복사/붙여넣기**
-   - `google-apps-script-code.js` 파일의 모든 코드 복사
-   - 기존 코드 삭제 후 붙여넣기
-   - Ctrl+S (또는 Cmd+S) 저장
+2. **프로젝트 Import**
+   - "Import Git Repository" 클릭
+   - GitHub repository 선택 (gma3561/warmenergy)
 
-4. **웹 앱으로 배포**
-   - 상단 메뉴: 배포 → 새 배포
-   - 유형 선택: "웹 앱"
-   - 설정:
-     - 설명: "이메일 전송 API"
-     - 실행: "나"
-     - 액세스 권한: **"모든 사용자"** (중요!)
-   - "배포" 클릭
-   - 권한 승인 (처음 한 번만)
+3. **SendGrid 설정** (선택사항)
+   - https://sendgrid.com 무료 가입
+   - API Key 생성
+   - Vercel 환경변수 추가:
+     - `SENDGRID_API_KEY`: API 키
 
-5. **URL 복사**
-   - 배포 완료 후 나타나는 URL 복사
-   - 예: `https://script.google.com/macros/s/AKfycbxxxxxx/exec`
+4. **배포**
+   - "Deploy" 클릭
+   - 자동으로 배포 완료!
 
-### 2단계: 웹사이트 설정
+### 또는 Netlify 배포
 
-1. **script.js 파일 수정**
-   ```javascript
-   // 60번 줄의 YOUR_GOOGLE_SCRIPT_URL을 복사한 URL로 교체
-   const GOOGLE_SCRIPT_URL = '여기에_복사한_URL_붙여넣기';
-   ```
+1. **Netlify 가입** (무료)
+   - https://netlify.com 접속
+   - GitHub 계정으로 로그인
 
-2. **GitHub에 Push**
-   ```bash
-   git add .
-   git commit -m "Google Apps Script URL 설정"
-   git push origin main
-   ```
+2. **New site from Git**
+   - GitHub repository 연결
+   - 자동 배포
+
+3. **Forms 설정**
+   - Settings → Forms → Enable
+   - Email notifications 설정
 
 ## 사용 방법
 
